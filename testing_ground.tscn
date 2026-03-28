@@ -1,0 +1,44 @@
+[gd_scene format=3 uid="uid://bpecy6cebb3tm"]
+
+[ext_resource type="Script" uid="uid://ht4rd8u38mwt" path="res://testing_ground.gd" id="1_71d8t"]
+[ext_resource type="PackedScene" uid="uid://cqee5c31uibbg" path="res://scenes/cubic_bezier_curve.tscn" id="1_q4otm"]
+[ext_resource type="PackedScene" uid="uid://biamhtixd1i2f" path="res://scenes/control_knob.tscn" id="2_1aoan"]
+
+[node name="Random Scene" type="Node2D" unique_id=877713704]
+script = ExtResource("1_71d8t")
+
+[node name="ControlKnob" parent="." unique_id=1258546796 instance=ExtResource("2_1aoan")]
+position = Vector2(224, 96)
+
+[node name="P1" type="Marker2D" parent="ControlKnob" unique_id=1408596666]
+
+[node name="ControlKnob2" parent="." unique_id=1981667876 instance=ExtResource("2_1aoan")]
+position = Vector2(224, 544)
+
+[node name="P2" type="Marker2D" parent="ControlKnob2" unique_id=94504712]
+
+[node name="ControlKnob3" parent="." unique_id=175075379 instance=ExtResource("2_1aoan")]
+position = Vector2(928, 544)
+
+[node name="P3" type="Marker2D" parent="ControlKnob3" unique_id=1096222686]
+
+[node name="ControlKnob4" parent="." unique_id=1669341864 instance=ExtResource("2_1aoan")]
+position = Vector2(928, 96)
+
+[node name="P4" type="Marker2D" parent="ControlKnob4" unique_id=1097105392]
+
+[node name="CubicBezierCurve" parent="." unique_id=1451203296 node_paths=PackedStringArray("control_point1", "control_point2", "control_point3", "control_point4") instance=ExtResource("1_q4otm")]
+control_point1 = NodePath("../ControlKnob/P1")
+control_point2 = NodePath("../ControlKnob2/P2")
+control_point3 = NodePath("../ControlKnob3/P3")
+control_point4 = NodePath("../ControlKnob4/P4")
+step_size = 0.001
+square_size = 10.0
+
+[node name="Label" type="Label" parent="." unique_id=1735841466]
+offset_left = 875.0
+offset_right = 1152.0
+offset_bottom = 45.0
+theme_override_font_sizes/font_size = 32
+text = "100 FPS"
+horizontal_alignment = 2

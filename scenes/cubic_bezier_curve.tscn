@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://cqee5c31uibbg"]
+
+[ext_resource type="Script" uid="uid://bwoxja6wuey8p" path="res://scripts/bezier_curve.gd" id="1_dmpkk"]
+
+[node name="CubicBezierCurve" type="Node2D" unique_id=1451203296]
+script = ExtResource("1_dmpkk")

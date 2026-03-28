@@ -1,0 +1,24 @@
+[gd_scene format=3 uid="uid://biamhtixd1i2f"]
+
+[ext_resource type="Script" uid="uid://cloug7pqu0vwb" path="res://scripts/control_knob.gd" id="1_4kcs8"]
+[ext_resource type="Shader" uid="uid://djesra41vm0ai" path="res://circle.gdshader" id="2_guy18"]
+[ext_resource type="Texture2D" uid="uid://djkgoyfubmi2e" path="res://icon.svg" id="2_l00a0"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_b2ky4"]
+shader = ExtResource("2_guy18")
+shader_parameter/amt = 1.0
+shader_parameter/color = Color(0, 0, 0, 1)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_guy18"]
+size = Vector2(64, 64)
+
+[node name="ControlKnob" type="Area2D" unique_id=1258546796]
+script = ExtResource("1_4kcs8")
+
+[node name="Icon" type="Sprite2D" parent="." unique_id=1661700520]
+material = SubResource("ShaderMaterial_b2ky4")
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("2_l00a0")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=195446385]
+shape = SubResource("RectangleShape2D_guy18")
