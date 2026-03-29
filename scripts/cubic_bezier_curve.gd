@@ -6,8 +6,8 @@ extends Node2D
 @export var control_point4: Marker2D
 
 @export var step_size: float = 0.001
-@export var square_size: float = 1.0
-@export var square_color: Color = Color.WHITE
+@export var width: float = 1.0
+@export var color: Color = Color.WHITE
 
 @export var collision: bool = false
 
@@ -37,6 +37,8 @@ func _process(_delta: float) -> void:
 
 ## Given the step size creates a cruve with 1/step points
 func interpolate(step: float) -> void:
+	# The S in SOLID principles refers to "Single responsibility principle"
+	# I hate OOP thus we do everything in this function
 	var step_count : int = (1/step) - 1
 	
 	var last_coord : Vector2 = Bezier(0)
@@ -53,7 +55,6 @@ func interpolate(step: float) -> void:
 		# Constant for every rectangle
 		var colorRect : ColorRect = ColorRect.new()
 		#add_child(colorRect)
-		colorRect.color = square_color
 		
 		
 		var new_coord : Vector2 = Bezier(u)
@@ -61,8 +62,8 @@ func interpolate(step: float) -> void:
 		
 		# Used to calculate the size of the rectangle
 		var distance : float = last_coord.distance_to(new_coord)
-		colorRect.pivot_offset = Vector2(distance/2,square_size/2)
-		colorRect.size = Vector2(distance,square_size)
+		colorRect.pivot_offset = Vector2(distance/2,width/2)
+		colorRect.size = Vector2(distance,width)
 		
 		
 		# The position of the rectangle
@@ -92,14 +93,13 @@ func interpolate(step: float) -> void:
 		# 0,0    s.x,0
 		# 0,s.y  s.x,s.y
 		
-		# The S in SOLID principles refers to "Single responsibility principle"
-		# One 
 		
 		vertices.push_back(xform * Vector2(0, 0))
 		vertices.push_back(xform * Vector2(s.x, 0))
 		vertices.push_back(xform * Vector2(0, s.y))
-		vertices.push_back(xform * Vector2(s.x, 0))
-		vertices.push_back(xform * Vector2(0, s.y))
+		# Needed if PRIMITIVE_TRIANGLE
+		#vertices.push_back(xform * Vector2(s.x, 0))
+		#vertices.push_back(xform * Vector2(0, s.y))
 		vertices.push_back(xform * Vector2(s.x, s.y))
 		
 		
@@ -107,14 +107,7 @@ func interpolate(step: float) -> void:
 		u = u + step  
 		last_coord = new_coord
 	
-	var arr_mesh = ArrayMesh.new()
-	var arrays = []
-	arrays.resize(Mesh.ARRAY_MAX)
-	arrays[Mesh.ARRAY_VERTEX] = vertices
-	# Create the Mesh.
-	arr_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
-	
-	mesh_instance.mesh = arr_mesh
+	create_mesh(vertices)
 	
 	if collision:
 		# Reverse the bottom points so the polygon draws a continuous loop
@@ -124,7 +117,19 @@ func interpolate(step: float) -> void:
 		var full_hull : PackedVector2Array = top_points
 		full_hull.append_array(bottom_points)
 		collision_shape.polygon = full_hull
-	
+
+
+
+func create_mesh(vertices):
+	var arr_mesh = ArrayMesh.new()
+	var arrays = []
+	arrays.resize(Mesh.ARRAY_MAX)
+	arrays[Mesh.ARRAY_VERTEX] = vertices
+	arr_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLE_STRIP, arrays)
+	mesh_instance.mesh = arr_mesh
+
+
+
 
 ## Returns the point the curve is at t, 0 <= t <= 1
 func Bezier(t: float) -> Vector2:
