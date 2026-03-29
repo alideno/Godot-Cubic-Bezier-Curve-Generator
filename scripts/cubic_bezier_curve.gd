@@ -28,12 +28,13 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	
-	for i in range(4):
-		if control_points[i].global_position != points[i]:
-			clear_all()
-			points = [control_point1.global_position,control_point2.global_position,control_point3.global_position,control_point4.global_position]
-			interpolate(step_size)
-			return
+	if Engine.get_process_frames() % 5 == 0:
+		for i in range(4):
+			if control_points[i].global_position != points[i]:
+				clear_all()
+				points = [control_point1.global_position,control_point2.global_position,control_point3.global_position,control_point4.global_position]
+				interpolate(step_size)
+				return
 
 ## Given the step size creates a cruve with 1/step points
 func interpolate(step: float) -> void:
@@ -103,9 +104,9 @@ func interpolate(step: float) -> void:
 		vertices.push_back(xform * Vector2(s.x, s.y))
 		
 		
-		
 		u = u + step  
 		last_coord = new_coord
+	
 	
 	create_mesh(vertices)
 	
@@ -117,6 +118,8 @@ func interpolate(step: float) -> void:
 		var full_hull : PackedVector2Array = top_points
 		full_hull.append_array(bottom_points)
 		collision_shape.polygon = full_hull
+		
+	print("Vertex count: " + str(vertices.size()))
 
 
 
