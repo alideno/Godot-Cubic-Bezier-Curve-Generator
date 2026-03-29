@@ -5,11 +5,16 @@ extends Node2D
 @export var control_point3: Marker2D
 @export var control_point4: Marker2D
 
-@export var step_size: float = 0.01
+@export var step_size: float = 0.001
 @export var square_size: float = 1.0
 @export var square_color: Color = Color.WHITE
 
+@export var collision: bool = false
+
 var shader_res = preload("res://circle.gdshader")
+
+@onready var collision_shape : CollisionPolygon2D = $CollisionPolygon2D
+@onready var mesh_instance : MeshInstance2D = $MeshInstance2D
 
 var points: Array # List of the control point coordinates
 var control_points: Array
@@ -30,6 +35,7 @@ func _process(_delta: float) -> void:
 			interpolate(step_size)
 			return
 
+## Given the step size creates a cruve with 1/step points
 func interpolate(step: float) -> void:
 	var step_count : int = (1/step) - 1
 	
@@ -37,14 +43,21 @@ func interpolate(step: float) -> void:
 	#mark_point(last_coord)
 	var u = step
 	
+	var top_points : PackedVector2Array = []
+	var bottom_points : PackedVector2Array = []
+	
+	var vertices : PackedVector2Array = []
+
+	
 	for i in range(step_count):
 		# Constant for every rectangle
 		var colorRect : ColorRect = ColorRect.new()
-		add_child(colorRect)
+		#add_child(colorRect)
 		colorRect.color = square_color
 		
 		
 		var new_coord : Vector2 = Bezier(u)
+		
 		
 		# Used to calculate the size of the rectangle
 		var distance : float = last_coord.distance_to(new_coord)
@@ -59,12 +72,61 @@ func interpolate(step: float) -> void:
 		var angle = (last_coord-new_coord).angle()
 		colorRect.rotation = angle
 		
+		if collision:
+			# Get the Transform
+			var xform = get_global_transform().affine_inverse() * colorRect.get_global_transform()
+			var s = colorRect.size
+
+			# Collect top vertices (moving forward)
+			top_points.append(xform * Vector2(0, 0))
+			top_points.append(xform * Vector2(s.x, 0))
+
+			# Collect bottom vertices (moving forward, will reverse later)
+			bottom_points.append(xform * Vector2(s.x, s.y))
+			bottom_points.append(xform * Vector2(0, s.y))
 		
 		#mark_point(new_coord)
+		var xform = get_global_transform().affine_inverse() * colorRect.get_global_transform()
+		var s = colorRect.size
+		
+		# 0,0    s.x,0
+		# 0,s.y  s.x,s.y
+		
+		# The S in SOLID principles refers to "Single responsibility principle"
+		# One 
+		
+		vertices.push_back(xform * Vector2(0, 0))
+		vertices.push_back(xform * Vector2(s.x, 0))
+		vertices.push_back(xform * Vector2(0, s.y))
+		vertices.push_back(xform * Vector2(s.x, 0))
+		vertices.push_back(xform * Vector2(0, s.y))
+		vertices.push_back(xform * Vector2(s.x, s.y))
+		
+		
+		
 		u = u + step  
 		last_coord = new_coord
+	
+	var arr_mesh = ArrayMesh.new()
+	var arrays = []
+	arrays.resize(Mesh.ARRAY_MAX)
+	arrays[Mesh.ARRAY_VERTEX] = vertices
+	# Create the Mesh.
+	arr_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+	
+	mesh_instance.mesh = arr_mesh
+	
+	if collision:
+		# Reverse the bottom points so the polygon draws a continuous loop
+		bottom_points.reverse()
 
-# Returns the point the curve is at t, 0 <= t <= 1
+		# Combine them into one final array
+		var full_hull : PackedVector2Array = top_points
+		full_hull.append_array(bottom_points)
+		collision_shape.polygon = full_hull
+	
+
+## Returns the point the curve is at t, 0 <= t <= 1
 func Bezier(t: float) -> Vector2:
 	if t < 0 or t > 1:
 		print("t value out of range, t = " + str(t))
@@ -74,7 +136,8 @@ func Bezier(t: float) -> Vector2:
 	var point = pow(omt,3)*points[0] + 3*pow(omt,2)*t*points[1] + 3*omt*pow(t,2)*points[2] + pow(t,3)*points[3]
 	
 	return point
-	
+
+## Debug Tool
 func mark_point(point: Vector2) -> void:
 	var debug_size = 20.0
 	var colorRect : ColorRect = ColorRect.new()
@@ -84,9 +147,13 @@ func mark_point(point: Vector2) -> void:
 	colorRect.position = point
 	add_child(colorRect)
 
+## Clear EVERYTHING related to the curve (except itself)
 func clear_all() -> void:
 	if get_child_count() == 0:
 		return
 	
 	for child in get_children():
+		if child == collision_shape || child == mesh_instance:
+			continue
 		child.queue_free()
+		

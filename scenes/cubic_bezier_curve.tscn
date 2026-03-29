@@ -1,6 +1,12 @@
 [gd_scene format=3 uid="uid://cqee5c31uibbg"]
 
-[ext_resource type="Script" uid="uid://bwoxja6wuey8p" path="res://scripts/bezier_curve.gd" id="1_dmpkk"]
+[ext_resource type="Script" uid="uid://bwoxja6wuey8p" path="res://scripts/cubic_bezier_curve.gd" id="1_dmpkk"]
 
-[node name="CubicBezierCurve" type="Node2D" unique_id=1451203296]
+[node name="CubicBezierCurve" type="StaticBody2D" unique_id=417804616]
 script = ExtResource("1_dmpkk")
+collision = true
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="." unique_id=215884260]
+build_mode = 1
+
+[node name="MeshInstance2D" type="MeshInstance2D" parent="." unique_id=1164257067]

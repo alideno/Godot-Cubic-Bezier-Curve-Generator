@@ -3,6 +3,16 @@
 [ext_resource type="Script" uid="uid://ht4rd8u38mwt" path="res://testing_ground.gd" id="1_71d8t"]
 [ext_resource type="PackedScene" uid="uid://cqee5c31uibbg" path="res://scenes/cubic_bezier_curve.tscn" id="1_q4otm"]
 [ext_resource type="PackedScene" uid="uid://biamhtixd1i2f" path="res://scenes/control_knob.tscn" id="2_1aoan"]
+[ext_resource type="Shader" uid="uid://djesra41vm0ai" path="res://circle.gdshader" id="4_ytm02"]
+[ext_resource type="Texture2D" uid="uid://djkgoyfubmi2e" path="res://icon.svg" id="5_1phy5"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_frp2q"]
+shader = ExtResource("4_ytm02")
+shader_parameter/amt = 1.0
+shader_parameter/color = Color(0, 0, 0.6, 1)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_alr7o"]
+radius = 32.0
 
 [node name="Random Scene" type="Node2D" unique_id=877713704]
 script = ExtResource("1_71d8t")
@@ -28,11 +38,11 @@ position = Vector2(928, 96)
 [node name="P4" type="Marker2D" parent="ControlKnob4" unique_id=1097105392]
 
 [node name="CubicBezierCurve" parent="." unique_id=1451203296 node_paths=PackedStringArray("control_point1", "control_point2", "control_point3", "control_point4") instance=ExtResource("1_q4otm")]
+position = Vector2(576, 328)
 control_point1 = NodePath("../ControlKnob/P1")
 control_point2 = NodePath("../ControlKnob2/P2")
 control_point3 = NodePath("../ControlKnob3/P3")
 control_point4 = NodePath("../ControlKnob4/P4")
-step_size = 0.001
 square_size = 10.0
 
 [node name="Label" type="Label" parent="." unique_id=1735841466]
@@ -42,3 +52,15 @@ offset_bottom = 45.0
 theme_override_font_sizes/font_size = 32
 text = "100 FPS"
 horizontal_alignment = 2
+
+[node name="RigidBody2D" type="RigidBody2D" parent="." unique_id=1418566089]
+position = Vector2(288, 96)
+
+[node name="Icon" type="Sprite2D" parent="RigidBody2D" unique_id=252018461]
+material = SubResource("ShaderMaterial_frp2q")
+position = Vector2(1.5258789e-05, 0)
+scale = Vector2(0.50000006, 0.5)
+texture = ExtResource("5_1phy5")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D" unique_id=978433255]
+shape = SubResource("CircleShape2D_alr7o")

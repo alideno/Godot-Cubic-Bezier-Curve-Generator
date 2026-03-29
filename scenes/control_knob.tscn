@@ -9,8 +9,8 @@ shader = ExtResource("2_guy18")
 shader_parameter/amt = 1.0
 shader_parameter/color = Color(0, 0, 0, 1)
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_guy18"]
-size = Vector2(64, 64)
+[sub_resource type="CircleShape2D" id="CircleShape2D_guy18"]
+radius = 32.0
 
 [node name="ControlKnob" type="Area2D" unique_id=1258546796]
 script = ExtResource("1_4kcs8")
@@ -21,4 +21,4 @@ scale = Vector2(0.5, 0.5)
 texture = ExtResource("2_l00a0")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=195446385]
-shape = SubResource("RectangleShape2D_guy18")
+shape = SubResource("CircleShape2D_guy18")
