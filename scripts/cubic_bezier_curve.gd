@@ -32,7 +32,7 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	
-	if Engine.get_process_frames() % 5 == 0:
+	if Engine.get_process_frames() % 2 == 0:
 		for i in range(4):
 			if to_local(control_points[i].global_position) != points[i]:
 				points = [
