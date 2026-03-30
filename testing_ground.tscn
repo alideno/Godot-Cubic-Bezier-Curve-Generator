@@ -44,6 +44,7 @@ control_point2 = NodePath("../ControlKnob2/P2")
 control_point3 = NodePath("../ControlKnob3/P3")
 control_point4 = NodePath("../ControlKnob4/P4")
 width = 10.0
+collision = false
 
 [node name="Label" type="Label" parent="." unique_id=1735841466]
 offset_left = 875.0

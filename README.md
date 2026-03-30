@@ -21,3 +21,4 @@ The updates are in chronological order, going from oldest to newest.
 
 - Vertices with super small angles between them are eliminated
 This changed doubled the fps count but the curve now looks like an accordion. Refer to the two screenshots in BoardOfPain.png.
+- Fixed the accordion glitch

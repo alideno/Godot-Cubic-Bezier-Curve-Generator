@@ -21,18 +21,26 @@ var control_points: Array
 
 func _ready() -> void:
 	control_points = [control_point1,control_point2,control_point3,control_point4]
-	points = [control_point1.global_position,control_point2.global_position,control_point3.global_position,control_point4.global_position]
+	points = [
+			to_local(control_point1.global_position),
+			to_local(control_point2.global_position),
+			to_local(control_point3.global_position),
+			to_local(control_point4.global_position)
+			]
 	interpolate(step_size)
-	
 
 
 func _process(_delta: float) -> void:
 	
 	if Engine.get_process_frames() % 5 == 0:
 		for i in range(4):
-			if control_points[i].global_position != points[i]:
-				clear_all()
-				points = [control_point1.global_position,control_point2.global_position,control_point3.global_position,control_point4.global_position]
+			if to_local(control_points[i].global_position) != points[i]:
+				points = [
+						to_local(control_point1.global_position),
+						to_local(control_point2.global_position),
+						to_local(control_point3.global_position),
+						to_local(control_point4.global_position)
+						]
 				interpolate(step_size)
 				return
 
@@ -43,7 +51,6 @@ func interpolate(step: float) -> void:
 	var step_count : int = (1/step) - 1
 	
 	var last_coord : Vector2 = Bezier(0)
-	var last_angle : float = 0
 	#mark_point(last_coord)
 	var u = step
 	
@@ -55,46 +62,56 @@ func interpolate(step: float) -> void:
 	
 	for i in range(step_count):
 		# Constant for every rectangle
-		var colorRect : ColorRect = ColorRect.new()
-		
 		var new_coord : Vector2 = Bezier(u)
 		u = u + step 
-		# Used to calculate the size of the rectangle
-		var distance : float = last_coord.distance_to(new_coord)
-		colorRect.pivot_offset = Vector2(distance/2,width/2)
-		var s = Vector2(distance,width)
 		
+		var dir = (new_coord - last_coord).normalized()
+		var normal = Vector2(-dir.y, dir.x) * (width / 2.0)
 		
-		# The position of the rectangle
-		colorRect.global_position = last_coord
-		
-		# Used to calculate the rotation of the rectangle
-		var angle = (last_coord-new_coord).angle()
-		colorRect.rotation = angle
-		
-		if abs(abs(rad_to_deg(angle)) - abs(last_angle)) <= 0.5:
-			continue
-		
-		var xform = get_global_transform().affine_inverse() * colorRect.get_global_transform()
-
-		
-		if collision:
-			top_points.append(xform * Vector2(0, 0))
-			bottom_points.append(xform * Vector2(0, s.y))
-		
-		# 0,0    s.x,0
-		# 0,s.y  s.x,s.y
-		
-		
-		vertices.push_back(xform * Vector2(0, 0))
-		vertices.push_back(xform * Vector2(0, s.y))
-		
-		 
+		# Top and bottom left points
+		vertices.push_back(last_coord + normal)
+		vertices.push_back(last_coord - normal)
 		last_coord = new_coord
-		last_angle = rad_to_deg(angle)
+	
+	var final_vertices : PackedVector2Array = []
+	var count = vertices.size()
+	final_vertices.push_back(vertices[0])
+	final_vertices.push_back(vertices[1])
+	if collision:
+		top_points.push_back(vertices[0])
+		bottom_points.push_back(vertices[1])
+	
+	const PITY_RATE := 3 
+	var pity_counter := 0
 	
 	
-	create_mesh(vertices)
+	for i in range(0,count-6, 6):
+		var first_angle = deg_angle(vertices[i],vertices[i+2])
+		var second_angle = deg_angle(vertices[i+2],vertices[i+4])
+		
+		if abs(first_angle - second_angle) <= 0.2:
+			if pity_counter < PITY_RATE:
+				pity_counter += 1
+				continue
+		
+		for j in range(0,6):
+			final_vertices.push_back(vertices[i+j])
+			if collision:
+				if j % 2 == 0: 
+					top_points.append(vertices[i+j])
+				else:
+					bottom_points.append(vertices[i+j])
+		
+		if pity_counter == PITY_RATE:
+			pity_counter = 0
+			
+	final_vertices.push_back(vertices[-2])
+	final_vertices.push_back(vertices[-1])
+	if collision:
+		top_points.push_back(vertices[-2])
+		bottom_points.push_back(vertices[-1])
+	
+	create_mesh(final_vertices)
 	
 	if collision:
 		# Reverse the bottom points so the polygon draws a continuous loop
@@ -102,9 +119,10 @@ func interpolate(step: float) -> void:
 
 		# Combine them into one final array
 		top_points.append_array(bottom_points)
-		collision_shape.polygon = top_points
+		collision_shape.set_deferred("polygon", top_points)
 		
-	print("Vertex count: " + str(vertices.size()))
+	print("Initial vertex count: " + str(vertices.size()))
+	print("Final vertex count: " + str(final_vertices.size()))
 
 
 
@@ -116,7 +134,8 @@ func create_mesh(vertices):
 	arr_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLE_STRIP, arrays)
 	mesh_instance.mesh = arr_mesh
 
-
+func deg_angle(first: Vector2,second: Vector2) -> float:
+	return rad_to_deg((first-second).angle())
 
 
 ## Returns the point the curve is at t, 0 <= t <= 1
@@ -139,18 +158,3 @@ func mark_point(point: Vector2) -> void:
 	colorRect.size = Vector2(debug_size,debug_size)
 	colorRect.position = point
 	add_child(colorRect)
-
-## Clear EVERYTHING related to the curve (except itself)
-func clear_all() -> void:
-	if get_child_count() == 0:
-		return
-	
-	for child in get_children():
-		if child == collision_shape:
-			collision_shape.polygon.clear()
-			continue
-		if child == mesh_instance:
-			mesh_instance.mesh = null
-			continue
-		child.queue_free()
-		
