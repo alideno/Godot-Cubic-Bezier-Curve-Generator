@@ -19,6 +19,11 @@ I might add other curve types as well, since the basic algoritm for point creati
 Earliest version of the curve
 ![Old curves in action](curve.gif)
 
+Latest version of the curve
+![New curves in action](curve2.gif)
+
+If you ignore the gif quality and only look at the fps count on the right bottom, you can see the improvement.
+
 ## Update Log ##
 The updates are in chronological order, going from oldest to newest.
 
