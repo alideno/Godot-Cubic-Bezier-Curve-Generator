@@ -43,6 +43,7 @@ func interpolate(step: float) -> void:
 	var step_count : int = (1/step) - 1
 	
 	var last_coord : Vector2 = Bezier(0)
+	var last_angle : float = 0
 	#mark_point(last_coord)
 	var u = step
 	
@@ -55,16 +56,13 @@ func interpolate(step: float) -> void:
 	for i in range(step_count):
 		# Constant for every rectangle
 		var colorRect : ColorRect = ColorRect.new()
-		#add_child(colorRect)
-		
 		
 		var new_coord : Vector2 = Bezier(u)
-		
-		
+		u = u + step 
 		# Used to calculate the size of the rectangle
 		var distance : float = last_coord.distance_to(new_coord)
 		colorRect.pivot_offset = Vector2(distance/2,width/2)
-		colorRect.size = Vector2(distance,width)
+		var s = Vector2(distance,width)
 		
 		
 		# The position of the rectangle
@@ -74,38 +72,26 @@ func interpolate(step: float) -> void:
 		var angle = (last_coord-new_coord).angle()
 		colorRect.rotation = angle
 		
-		if collision:
-			# Get the Transform
-			var xform = get_global_transform().affine_inverse() * colorRect.get_global_transform()
-			var s = colorRect.size
-
-			# Collect top vertices (moving forward)
-			top_points.append(xform * Vector2(0, 0))
-			top_points.append(xform * Vector2(s.x, 0))
-
-			# Collect bottom vertices (moving forward, will reverse later)
-			bottom_points.append(xform * Vector2(s.x, s.y))
-			bottom_points.append(xform * Vector2(0, s.y))
+		if abs(abs(rad_to_deg(angle)) - abs(last_angle)) <= 0.5:
+			continue
 		
-		#mark_point(new_coord)
 		var xform = get_global_transform().affine_inverse() * colorRect.get_global_transform()
-		var s = colorRect.size
+
+		
+		if collision:
+			top_points.append(xform * Vector2(0, 0))
+			bottom_points.append(xform * Vector2(0, s.y))
 		
 		# 0,0    s.x,0
 		# 0,s.y  s.x,s.y
 		
 		
 		vertices.push_back(xform * Vector2(0, 0))
-		vertices.push_back(xform * Vector2(s.x, 0))
 		vertices.push_back(xform * Vector2(0, s.y))
-		# Needed if PRIMITIVE_TRIANGLE
-		#vertices.push_back(xform * Vector2(s.x, 0))
-		#vertices.push_back(xform * Vector2(0, s.y))
-		vertices.push_back(xform * Vector2(s.x, s.y))
 		
-		
-		u = u + step  
+		 
 		last_coord = new_coord
+		last_angle = rad_to_deg(angle)
 	
 	
 	create_mesh(vertices)
@@ -115,9 +101,8 @@ func interpolate(step: float) -> void:
 		bottom_points.reverse()
 
 		# Combine them into one final array
-		var full_hull : PackedVector2Array = top_points
-		full_hull.append_array(bottom_points)
-		collision_shape.polygon = full_hull
+		top_points.append_array(bottom_points)
+		collision_shape.polygon = top_points
 		
 	print("Vertex count: " + str(vertices.size()))
 
@@ -161,7 +146,11 @@ func clear_all() -> void:
 		return
 	
 	for child in get_children():
-		if child == collision_shape || child == mesh_instance:
+		if child == collision_shape:
+			collision_shape.polygon.clear()
+			continue
+		if child == mesh_instance:
+			mesh_instance.mesh = null
 			continue
 		child.queue_free()
 		
