@@ -16,9 +16,11 @@ The updates are in chronological order, going from oldest to newest.
 
 - Changed from creating bazillion texture rectangles to one mesh
 - Changed from creating bazillion collision shapes for bazillion texture rectangles to creating one collision polygon
-- Switched from PRIMITVE_TRIANGLE to PRIMITIVE_TRIANGLE_STRIP for mesh triangulation
+- Switched from PRIMITIVE_TRIANGLE to PRIMITIVE_TRIANGLE_STRIP for mesh triangulation
 - Fixed an oversight where every vertex was created twice
 
 - Vertices with super small angles between them are eliminated
-This changed doubled the fps count but the curve now looks like an accordion. Refer to the two screenshots in BoardOfPain.png.
+This changed doubled the fps count but the curve now looks like an accordion. Refer to the two screenshots in the [Board of Pain™](BoardOfPain.png).
 - Fixed the accordion glitch
+
+
