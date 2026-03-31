@@ -1,18 +1,34 @@
 @tool
 extends Node2D
 
+# Dear user, I believe the settings I have provided are enough.
+# If you really want to mess with the code, here is a list of the important variables 
+# step_size -> Number of steps we take to get from P1 to P4
+# PITY_RATE -> The rate which the point elimination algorithm skips a to-be deleted point
+# REFREST_RATE -> Checks and redraws the curve every REFREST_RATE frames
+
+@export_group("Control Points")
 @export var control_point1: Marker2D
 @export var control_point2: Marker2D
 @export var control_point3: Marker2D
 @export var control_point4: Marker2D
 
-var step_size: float = 0.001
-@export var width: float = 1.0
-var color: Color = Color.WHITE
+@export_group("Settings")
 
+## Width of the curve. When the value is below 1, it doesn't render well.
+@export var width: float = 1.0
+
+## Adds collision to the curve
 @export var collision: bool = false
 
-var shader_res = preload("res://testing/circle.gdshader")
+# when step_size near 0.1 it completely breaks
+# when step_size near 0.01 5% of the curve is missing
+# when step_size near 0.001 it looks the same 
+# but more burden on the CPU and RAM and halves the fps when moved
+# so 0.001 is the sweet spot where the curve neither causes lag or looks bad
+var step_size: float = 0.001
+
+const REFRESH_RATE : int = 2
 
 @onready var collision_shape : CollisionPolygon2D = $CollisionPolygon2D
 @onready var mesh_instance : MeshInstance2D = $MeshInstance2D
@@ -33,7 +49,7 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	
-	if Engine.get_process_frames() % 2 == 0:
+	if Engine.get_process_frames() % REFRESH_RATE == 0:
 		for i in range(4):
 			if to_local(control_points[i].global_position) != points[i]:
 				points = [
