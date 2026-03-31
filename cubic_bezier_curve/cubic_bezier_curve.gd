@@ -1,3 +1,4 @@
+@tool
 extends Node2D
 
 @export var control_point1: Marker2D
@@ -5,13 +6,13 @@ extends Node2D
 @export var control_point3: Marker2D
 @export var control_point4: Marker2D
 
-@export var step_size: float = 0.001
+var step_size: float = 0.001
 @export var width: float = 1.0
-@export var color: Color = Color.WHITE
+var color: Color = Color.WHITE
 
 @export var collision: bool = false
 
-var shader_res = preload("res://circle.gdshader")
+var shader_res = preload("res://testing/circle.gdshader")
 
 @onready var collision_shape : CollisionPolygon2D = $CollisionPolygon2D
 @onready var mesh_instance : MeshInstance2D = $MeshInstance2D
@@ -121,8 +122,8 @@ func interpolate(step: float) -> void:
 		top_points.append_array(bottom_points)
 		collision_shape.set_deferred("polygon", top_points)
 		
-	print("Initial vertex count: " + str(vertices.size()))
-	print("Final vertex count: " + str(final_vertices.size()))
+	#print("Initial vertex count: " + str(vertices.size()))
+	#print("Final vertex count: " + str(final_vertices.size()))
 
 
 

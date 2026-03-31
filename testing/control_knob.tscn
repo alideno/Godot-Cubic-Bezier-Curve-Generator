@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://biamhtixd1i2f"]
 
-[ext_resource type="Script" uid="uid://cloug7pqu0vwb" path="res://scripts/control_knob.gd" id="1_4kcs8"]
-[ext_resource type="Shader" uid="uid://djesra41vm0ai" path="res://circle.gdshader" id="2_guy18"]
+[ext_resource type="Script" uid="uid://cloug7pqu0vwb" path="res://testing/control_knob.gd" id="1_4kcs8"]
+[ext_resource type="Shader" uid="uid://djesra41vm0ai" path="res://testing/circle.gdshader" id="2_guy18"]
 [ext_resource type="Texture2D" uid="uid://djkgoyfubmi2e" path="res://icon.svg" id="2_l00a0"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_b2ky4"]

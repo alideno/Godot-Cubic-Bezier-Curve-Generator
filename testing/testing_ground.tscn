@@ -1,9 +1,9 @@
 [gd_scene format=3 uid="uid://bpecy6cebb3tm"]
 
-[ext_resource type="Script" uid="uid://ht4rd8u38mwt" path="res://testing_ground.gd" id="1_71d8t"]
-[ext_resource type="PackedScene" uid="uid://cqee5c31uibbg" path="res://scenes/cubic_bezier_curve.tscn" id="1_q4otm"]
-[ext_resource type="PackedScene" uid="uid://biamhtixd1i2f" path="res://scenes/control_knob.tscn" id="2_1aoan"]
-[ext_resource type="Shader" uid="uid://djesra41vm0ai" path="res://circle.gdshader" id="4_ytm02"]
+[ext_resource type="Script" uid="uid://ht4rd8u38mwt" path="res://testing/testing_ground.gd" id="1_71d8t"]
+[ext_resource type="PackedScene" uid="uid://cqee5c31uibbg" path="res://cubic_bezier_curve/cubic_bezier_curve.tscn" id="1_q4otm"]
+[ext_resource type="PackedScene" uid="uid://biamhtixd1i2f" path="res://testing/control_knob.tscn" id="2_1aoan"]
+[ext_resource type="Shader" uid="uid://djesra41vm0ai" path="res://testing/circle.gdshader" id="4_ytm02"]
 [ext_resource type="Texture2D" uid="uid://djkgoyfubmi2e" path="res://icon.svg" id="5_1phy5"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_frp2q"]
@@ -38,12 +38,11 @@ position = Vector2(928, 96)
 [node name="P4" type="Marker2D" parent="ControlKnob4" unique_id=1097105392]
 
 [node name="CubicBezierCurve" parent="." unique_id=1451203296 node_paths=PackedStringArray("control_point1", "control_point2", "control_point3", "control_point4") instance=ExtResource("1_q4otm")]
-position = Vector2(576, 328)
 control_point1 = NodePath("../ControlKnob/P1")
 control_point2 = NodePath("../ControlKnob2/P2")
 control_point3 = NodePath("../ControlKnob3/P3")
 control_point4 = NodePath("../ControlKnob4/P4")
-width = 10.0
+collision = true
 
 [node name="Label" type="Label" parent="." unique_id=1735841466]
 offset_left = 875.0
