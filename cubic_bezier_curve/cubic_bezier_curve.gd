@@ -1,34 +1,17 @@
 @tool
 extends Node2D
 
-# Dear user, I believe the settings I have provided are enough.
-# If you really want to mess with the code, here is a list of the important variables 
-# step_size -> Number of steps we take to get from P1 to P4
-# PITY_RATE -> The rate which the point elimination algorithm skips a to-be deleted point
-# REFREST_RATE -> Checks and redraws the curve every REFREST_RATE frames
-
-@export_group("Control Points")
 @export var control_point1: Marker2D
 @export var control_point2: Marker2D
 @export var control_point3: Marker2D
 @export var control_point4: Marker2D
 
-@export_group("Settings")
-
-## Width of the curve. When the value is below 1, it doesn't render well.
+@export var step_size: float = 0.001
 @export var width: float = 1.0
 
-## Adds collision to the curve
 @export var collision: bool = false
 
-# when step_size near 0.1 it completely breaks
-# when step_size near 0.01 5% of the curve is missing
-# when step_size near 0.001 it looks the same 
-# but more burden on the CPU and RAM and halves the fps when moved
-# so 0.001 is the sweet spot where the curve neither causes lag or looks bad
-var step_size: float = 0.001
-
-const REFRESH_RATE : int = 2
+@export var texture_repeat_dist: float
 
 @onready var collision_shape : CollisionPolygon2D = $CollisionPolygon2D
 @onready var mesh_instance : MeshInstance2D = $MeshInstance2D
@@ -49,7 +32,7 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	
-	if Engine.get_process_frames() % REFRESH_RATE == 0:
+	if Engine.get_process_frames() % 2 == 0:
 		for i in range(4):
 			if to_local(control_points[i].global_position) != points[i]:
 				points = [
@@ -61,93 +44,126 @@ func _process(_delta: float) -> void:
 				interpolate(step_size)
 				return
 
-## Given the step size creates a cruve with 1/step points
+## Final refined interpolate for smooth, tiled, and simplified Bezier geometry
 func interpolate(step: float) -> void:
-	# The S in SOLID principles refers to "Single responsibility principle"
-	# I hate OOP thus we do everything in this function
-	var step_count : int = (1/step) - 1
-	
+	var step_count : int = int(1.0 / step)
 	var last_coord : Vector2 = Bezier(0)
-	#mark_point(last_coord)
-	var u = step
-	
-	var top_points : PackedVector2Array = []
-	var bottom_points : PackedVector2Array = []
 	
 	var vertices : PackedVector2Array = []
+	var uvs : PackedVector2Array = []
+	var top_points : PackedVector2Array = []
+	var bottom_points : PackedVector2Array = []
 
+	# 1. Pre-calculate Total Length for tiling
+	var total_length : float = 0.0
+	var temp_last = last_coord
+	for i in range(1, step_count + 1):
+		var p = Bezier(i * step)
+		total_length += temp_last.distance_to(p)
+		temp_last = p
 	
-	for i in range(step_count):
-		# Constant for every rectangle
-		var new_coord : Vector2 = Bezier(u)
-		u = u + step 
+	var tiling_factor : float = 1.0
+	if mesh_instance.texture:
+		var tex_size = mesh_instance.texture.get_size()
+		var aspect_ratio = tex_size.x / tex_size.y
+		# This ensures the texture doesn't stretch vertically
+		tiling_factor = 1.0 / (width * aspect_ratio)
+
+	# 2. Explicitly handle the start (t=0) to prevent smear
+	var start_dir = (Bezier(0.001) - last_coord).normalized()
+	var start_normal = Vector2(-start_dir.y, start_dir.x) * (width / 2.0)
+	
+	vertices.push_back(last_coord + start_normal)
+	vertices.push_back(last_coord - start_normal)
+	uvs.push_back(Vector2(0.0, 0.0))
+	uvs.push_back(Vector2(0.0, 1.0))
+
+	# 3. Generate raw pairs based on distance
+	var current_dist : float = 0.0
+	for i in range(1, step_count + 1):
+		var t = clamp(i * step, 0.0, 1.0)
+		var new_coord : Vector2 = Bezier(t)
 		
+		# Direction based on previous point to current point
 		var dir = (new_coord - last_coord).normalized()
 		var normal = Vector2(-dir.y, dir.x) * (width / 2.0)
 		
-		# Top and bottom left points
-		vertices.push_back(last_coord + normal)
-		vertices.push_back(last_coord - normal)
+		current_dist += last_coord.distance_to(new_coord)
+		var uv_x = current_dist * tiling_factor
+		
+		vertices.push_back(new_coord + normal)
+		vertices.push_back(new_coord - normal)
+		uvs.push_back(Vector2(uv_x, 0.0))
+		uvs.push_back(Vector2(uv_x, 1.0))
+		
 		last_coord = new_coord
-	
+
+	# 4. Simplification Logic (Pity Counter)
 	var final_vertices : PackedVector2Array = []
-	var count = vertices.size()
+	var final_uvs : PackedVector2Array = []
+	
+	# Always keep the start pair
 	final_vertices.push_back(vertices[0])
 	final_vertices.push_back(vertices[1])
+	final_uvs.push_back(uvs[0])
+	final_uvs.push_back(uvs[1])
+	
 	if collision:
 		top_points.push_back(vertices[0])
 		bottom_points.push_back(vertices[1])
-	
+
 	const PITY_RATE := 3 
 	var pity_counter := 0
 	
-	
-	for i in range(0,count-6, 6):
-		var first_angle = deg_angle(vertices[i],vertices[i+2])
-		var second_angle = deg_angle(vertices[i+2],vertices[i+4])
+	# Loop through raw pairs (step by 2)
+	for i in range(2, vertices.size() - 2, 2):
+		var prev = vertices[i-2]
+		var curr = vertices[i]
+		var next = vertices[i+2]
 		
-		if abs(first_angle - second_angle) <= 0.2:
-			if pity_counter < PITY_RATE:
-				pity_counter += 1
-				continue
+		var angle_diff = abs(deg_angle(prev, curr) - deg_angle(curr, next))
 		
-		for j in range(0,6):
-			final_vertices.push_back(vertices[i+j])
-			if collision:
-				if j % 2 == 0: 
-					top_points.append(vertices[i+j])
-				else:
-					bottom_points.append(vertices[i+j])
+		# If it's a straight line, count pity and skip
+		if angle_diff <= 0.2 and pity_counter < PITY_RATE:
+			pity_counter += 1
+			continue
 		
-		if pity_counter == PITY_RATE:
-			pity_counter = 0
+		# Keep points at curves or when pity is up
+		pity_counter = 0
+		final_vertices.push_back(vertices[i])
+		final_vertices.push_back(vertices[i+1])
+		final_uvs.push_back(uvs[i])
+		final_uvs.push_back(uvs[i+1])
+		
+		if collision:
+			top_points.append(vertices[i])
+			bottom_points.append(vertices[i+1])
 			
+	# Always keep the end pair
 	final_vertices.push_back(vertices[-2])
 	final_vertices.push_back(vertices[-1])
+	final_uvs.push_back(uvs[-2])
+	final_uvs.push_back(uvs[-1])
+	
 	if collision:
 		top_points.push_back(vertices[-2])
 		bottom_points.push_back(vertices[-1])
-	
-	create_mesh(final_vertices)
+
+	# 5. Application
+	create_mesh(final_vertices, final_uvs) 
 	
 	if collision:
-		# Reverse the bottom points so the polygon draws a continuous loop
 		bottom_points.reverse()
-
-		# Combine them into one final array
 		top_points.append_array(bottom_points)
 		collision_shape.set_deferred("polygon", top_points)
-		
-	#print("Initial vertex count: " + str(vertices.size()))
-	#print("Final vertex count: " + str(final_vertices.size()))
 
-
-
-func create_mesh(vertices):
+func create_mesh(vertices: PackedVector2Array, uvs: PackedVector2Array):
 	var arr_mesh = ArrayMesh.new()
 	var arrays = []
 	arrays.resize(Mesh.ARRAY_MAX)
 	arrays[Mesh.ARRAY_VERTEX] = vertices
+	arrays[Mesh.ARRAY_TEX_UV] = uvs # Assign UVs here
+	
 	arr_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLE_STRIP, arrays)
 	mesh_instance.mesh = arr_mesh
 
