@@ -5,7 +5,6 @@
 
 [node name="CubicBezierCurve" type="StaticBody2D" unique_id=417804616]
 script = ExtResource("1_dmpkk")
-texture_repeat_dist = null
 
 [node name="MeshInstance2D" type="MeshInstance2D" parent="." unique_id=1164257067]
 texture_repeat = 2

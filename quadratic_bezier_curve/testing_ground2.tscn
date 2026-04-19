@@ -1,0 +1,61 @@
+[gd_scene format=3 uid="uid://dp7cdlsa123b2"]
+
+[ext_resource type="Script" uid="uid://ht4rd8u38mwt" path="res://testing/testing_ground.gd" id="1_fc0d2"]
+[ext_resource type="PackedScene" uid="uid://biamhtixd1i2f" path="res://testing/control_knob.tscn" id="2_y2m4c"]
+[ext_resource type="Shader" uid="uid://djesra41vm0ai" path="res://testing/circle.gdshader" id="3_eped6"]
+[ext_resource type="Texture2D" uid="uid://djkgoyfubmi2e" path="res://icon.svg" id="4_lu7cs"]
+[ext_resource type="PackedScene" uid="uid://cfv55cib1yt6u" path="res://quadratic_bezier_curve/quadratic_bezier_curve.tscn" id="5_2jym0"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_frp2q"]
+shader = ExtResource("3_eped6")
+shader_parameter/amt = 1.0
+shader_parameter/color = Color(0, 0, 0.6, 1)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_alr7o"]
+radius = 32.0
+
+[node name="Random Scene" type="Node2D" unique_id=877713704]
+script = ExtResource("1_fc0d2")
+
+[node name="ControlKnob" parent="." unique_id=1258546796 instance=ExtResource("2_y2m4c")]
+position = Vector2(224, 96)
+
+[node name="P1" type="Marker2D" parent="ControlKnob" unique_id=1408596666]
+
+[node name="ControlKnob2" parent="." unique_id=1981667876 instance=ExtResource("2_y2m4c")]
+position = Vector2(224, 544)
+
+[node name="P2" type="Marker2D" parent="ControlKnob2" unique_id=94504712]
+
+[node name="ControlKnob3" parent="." unique_id=175075379 instance=ExtResource("2_y2m4c")]
+position = Vector2(992, 544)
+
+[node name="P3" type="Marker2D" parent="ControlKnob3" unique_id=1096222686]
+
+[node name="Label" type="Label" parent="." unique_id=1735841466]
+offset_left = 875.0
+offset_right = 1152.0
+offset_bottom = 45.0
+theme_override_font_sizes/font_size = 32
+text = "100 FPS"
+horizontal_alignment = 2
+
+[node name="RigidBody2D" type="RigidBody2D" parent="." unique_id=1418566089]
+position = Vector2(288, 96)
+
+[node name="Icon" type="Sprite2D" parent="RigidBody2D" unique_id=252018461]
+material = SubResource("ShaderMaterial_frp2q")
+position = Vector2(1.5258789e-05, 0)
+scale = Vector2(0.50000006, 0.5)
+texture = ExtResource("4_lu7cs")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D" unique_id=978433255]
+shape = SubResource("CircleShape2D_alr7o")
+
+[node name="QuadraticBezierCurve" parent="." unique_id=417804616 node_paths=PackedStringArray("control_point1", "control_point2", "control_point3") instance=ExtResource("5_2jym0")]
+position = Vector2(344, 296)
+control_point1 = NodePath("../ControlKnob/P1")
+control_point2 = NodePath("../ControlKnob2/P2")
+control_point3 = NodePath("../ControlKnob3/P3")
+width = 20.0
+collision = true

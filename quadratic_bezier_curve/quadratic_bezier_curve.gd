@@ -5,9 +5,8 @@ extends Node2D
 ## Start point of the curve
 @export var control_point1: Marker2D
 @export var control_point2: Marker2D
-@export var control_point3: Marker2D
 ## End point of the curve
-@export var control_point4: Marker2D
+@export var control_point3: Marker2D
 
 @export_group("Settings")
 @export var step_size: float = 0.001
@@ -22,12 +21,12 @@ var points: Array # List of the control point coordinates
 var control_points: Array
 
 func _ready() -> void:
-	control_points = [control_point1,control_point2,control_point3,control_point4]
+	control_points = [control_point1,control_point2,control_point3]
 	points = [
 			to_local(control_point1.global_position),
 			to_local(control_point2.global_position),
 			to_local(control_point3.global_position),
-			to_local(control_point4.global_position)
+
 			]
 	interpolate(step_size)
 
@@ -35,13 +34,12 @@ func _ready() -> void:
 func _process(_delta: float) -> void:
 	
 	if Engine.get_process_frames() % 2 == 0:
-		for i in range(4):
+		for i in range(3):
 			if to_local(control_points[i].global_position) != points[i]:
 				points = [
 						to_local(control_point1.global_position),
 						to_local(control_point2.global_position),
-						to_local(control_point3.global_position),
-						to_local(control_point4.global_position)
+						to_local(control_point3.global_position)
 						]
 				interpolate(step_size)
 				return
@@ -168,7 +166,7 @@ func Bezier(t: float) -> Vector2:
 		return Vector2.ZERO
 		
 	var omt : float = 1-t # One Minus T (OMT)
-	var point = pow(omt,3)*points[0] + 3*pow(omt,2)*t*points[1] + 3*omt*pow(t,2)*points[2] + pow(t,3)*points[3]
+	var point = pow(omt,2)*points[0] + 2*omt*t*points[1] + pow(t,2)*points[2]
 	
 	return point
 
@@ -178,6 +176,6 @@ func DerivativeBezier(t: float) -> Vector2:
 		return Vector2.ZERO
 		
 	var omt : float = 1-t # One Minus T (OMT)
-	var point = pow(omt,3)*points[0] + 3*pow(omt,2)*t*points[1] + 3*omt*pow(t,2)*points[2] + pow(t,3)*points[3]
+	var point = 2*omt*(points[1]-points[0])+2*t*(points[2]-points[1])
 	
 	return point
